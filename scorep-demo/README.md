@@ -54,7 +54,7 @@ $ ls
 Makefile  README.md  simple.exe  simple-inst.exe  simple-mpi.f90
 ```
 
-`simple.exe` is the _normal_ binary i.e., un-instrumented. `simple-inst.exe` has been compiled with the `scorep` compiler
+`simple.exe` is the _normal_ binary i.e., uninstrumented. `simple-inst.exe` has been compiled with the `scorep` compiler
 wrapper (`scorep-mpif90`) and it can be used to generate a profile.
 
 ## Example
@@ -115,7 +115,7 @@ Makefile  README.md  scorep-20240702_1057_31774347574663  simple.exe  simple-ins
 It will be called something like `scorep-20240702_1057_31774347574663`. The exact filename will vary as it is followed by a
 timestamp i.e., `20240702_1057_31774347574663`.
 
-If we look inside this folder we have the folowing:
+If we look inside this folder we have the following:
 
 ```
 $ ls scorep-20240702_1057_31774347574663/
@@ -137,3 +137,26 @@ $ cube scorep-20240702_1057_31774347574663/profile.cubex
 You should see something like this:
 
 ![scorep profile in cube](./imgs/cube-screenshot.png)
+
+There is a [run script](./run.sh) included in this folder. It shows how to run the code under the three conditions. We have
+already seen the first two; running the _normal_ binary and running the instrumented binary. The third method adds
+[`perf`](https://perf.wiki.kernel.org/index.php/Main_Page) hardware counters. `scorep` allows users to gather additional metrics
+(like those from Linux `perf`) at runtime. In the following example we will measure the number of cache misses using
+`cache-misses:u`. For a full list of supported `perf` metrics please see the `scorep`
+[documentation](https://perftools.pages.jsc.fz-juelich.de/cicd/scorep/tags/latest/pdf/scorep.pdf) (section 5.6.3).
+
+```
+export SCOREP_METRIC_PERF='cache-misses:u'
+
+mpirun -n 2 simple-inst.exe
+```
+
+**NOTE:** You will need `perf` counters enabled on your system to try this part of the demo. On some HPC systems you need special
+permission to use `perf` counters. Please speak to your HPC admins if you want to use this feature.
+
+If you are running on Ubuntu you can modify the file `/proc/sys/kernel/perf_event_paranoid` and set the value to 0 (this
+requires sudo permissions).
+
+If it works, you should see something like this in `cube`:
+
+![scorep profile with perf in cube](./imgs/cube-screenshot-2.png)
